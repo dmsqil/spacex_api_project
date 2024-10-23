@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:convert'; // Untuk menguraikan JSON
-import 'package:http/http.dart' as http; // Untuk HTTP request
+import 'models/spacex_model.dart';
+import 'services/spacex_api_service.dart'; // Importing the API service
 
 void main() {
   runApp(SpaceXApp());
@@ -37,17 +37,6 @@ class _SpaceXHomePageState extends State<SpaceXHomePage> {
     futureLaunchData = fetchLaunchData();
   }
 
-  Future<LaunchData> fetchLaunchData() async {
-    final response = await http.get(Uri.parse(
-        'https://api.spacexdata.com/v4/launches/5eb87d46ffd86e000604b388'));
-
-    if (response.statusCode == 200) {
-      return LaunchData.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to load data');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -79,60 +68,47 @@ class LaunchDetails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      // Membungkus seluruh tampilan dengan SingleChildScrollView
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Card(
-          elevation: 4, // Memberikan shadow pada card
+          elevation: 4,
           shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(12), // Membuat sudut card melengkung
+            borderRadius: BorderRadius.circular(12),
           ),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Gambar misi
                 Center(
                   child: Image.network(
                     data.links.patch.large,
-                    height: 120, // Mengurangi tinggi gambar
-                    fit: BoxFit
-                        .contain, // Membuat gambar tetap dalam ukuran proporsional
+                    height: 120,
+                    fit: BoxFit.contain,
                   ),
                 ),
-                SizedBox(height: 16.0), // Spasi antara gambar dan teks
-
-                // Nama Misi
+                SizedBox(height: 16.0),
                 Center(
                   child: Text(
                     data.name,
                     style: TextStyle(
-                      fontSize:
-                          22, // Mengurangi ukuran font untuk menyesuaikan layar
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blueAccent, // Warna teks biru
+                      color: Colors.blueAccent,
                     ),
                     textAlign: TextAlign.center,
                   ),
                 ),
-                SizedBox(height: 8.0), // Spasi antara teks
-
-                // Informasi Keberhasilan Peluncuran
+                SizedBox(height: 8.0),
                 Text(
                   'Launch Success: ${data.success ? 'Yes' : 'No'}',
                   style: TextStyle(
                     fontSize: 18,
-                    color: data.success
-                        ? Colors.green
-                        : Colors.red, // Warna teks sesuai hasil
+                    color: data.success ? Colors.green : Colors.red,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 SizedBox(height: 16.0),
-
-                // Detail Misi
                 Text(
                   'Details:',
                   style: TextStyle(
@@ -144,13 +120,11 @@ class LaunchDetails extends StatelessWidget {
                 Text(
                   data.details,
                   style: TextStyle(
-                    fontSize: 14, // Mengurangi ukuran font detail
+                    fontSize: 14,
                     color: Colors.black87,
                   ),
                 ),
                 SizedBox(height: 16.0),
-
-                // Tanggal Peluncuran
                 Text(
                   'Launch Date (UTC): ${data.dateUtc}',
                   style: TextStyle(
@@ -159,8 +133,6 @@ class LaunchDetails extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 16.0),
-
-                // Daftar Kru (jika ada)
                 data.crew.isNotEmpty
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -194,66 +166,6 @@ class LaunchDetails extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class LaunchData {
-  final String name;
-  final bool success;
-  final String details;
-  final String dateUtc;
-  final List<String> crew;
-  final Links links;
-
-  LaunchData({
-    required this.name,
-    required this.success,
-    required this.details,
-    required this.dateUtc,
-    required this.crew,
-    required this.links,
-  });
-
-  factory LaunchData.fromJson(Map<String, dynamic> json) {
-    return LaunchData(
-      name: json['name'],
-      success: json['success'],
-      details: json['details'],
-      dateUtc: json['date_utc'],
-      crew: List<String>.from(json['crew'].map((crewId) => crewId.toString())),
-      links: Links.fromJson(json['links']),
-    );
-  }
-}
-
-class Links {
-  final Patch patch;
-
-  Links({
-    required this.patch,
-  });
-
-  factory Links.fromJson(Map<String, dynamic> json) {
-    return Links(
-      patch: Patch.fromJson(json['patch']),
-    );
-  }
-}
-
-class Patch {
-  final String small;
-  final String large;
-
-  Patch({
-    required this.small,
-    required this.large,
-  });
-
-  factory Patch.fromJson(Map<String, dynamic> json) {
-    return Patch(
-      small: json['small'],
-      large: json['large'],
     );
   }
 }
